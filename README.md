@@ -358,5 +358,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - [CrewAI](https://github.com/joaomdmoura/crewAI) for the agent framework
 - [FastMCP](https://github.com/anthropics/FastMCP) for the MCP server implementation
-- Google's Gemini for the LLM capabilities
 - Perplexity API for search functionality

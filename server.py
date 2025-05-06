@@ -23,16 +23,21 @@ from mcp.server.fastmcp import FastMCP, Context
 from mcp.server.fastmcp.prompts import base
 
 # CrewAI imports
-from crewai import Agent, Task, Crew, Process
+from crewai import Agent, Task, Crew, Process, LLM
 from crewai.tools import BaseTool
-import google.generativeai as genai
+
 
 # Environment variables (to be loaded from .env)
 from dotenv import load_dotenv
 load_dotenv()
+llm= LLM(
+    model= "sonar-deep-research",
+    base_url="https://api.perplexity.ai/",
+    api_key=os.getenv("PERPLEXITY_API_KEY")
 
-# Configure Gemini API
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+)
+# Configure perplexity API
 
 # Database class for resume storage
 class Database:
@@ -97,7 +102,7 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
     db = await Database().connect()
     
     # Initialize Gemini model for agents
-    gemini_model = genai.GenerativeModel('gemini-1.5-pro')
+    gemini_model = llm
     
     try:
         yield AppContext(db=db, gemini_model=gemini_model)
@@ -247,7 +252,7 @@ def create_analysis_agent(mcp_client) -> Agent:
         verbose=True,
         allow_delegation=True,
         tools=[PerplexitySearchTool(mcp_client)],
-        llm=genai.GenerativeModel('gemini-1.5-pro')
+        llm=llm
     )
 
 def create_recommendation_agent(mcp_client) -> Agent:
@@ -261,7 +266,7 @@ def create_recommendation_agent(mcp_client) -> Agent:
         verbose=True,
         allow_delegation=True,
         tools=[PerplexitySearchTool(mcp_client)],
-        llm=genai.GenerativeModel('gemini-1.5-pro')
+        llm=llm
     )
 
 # CrewAI Tasks

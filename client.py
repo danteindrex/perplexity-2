@@ -5,7 +5,7 @@ from contextlib import AsyncExitStack
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-import google.generativeai as genai
+from crewai import LLM
 from dotenv import load_dotenv
 import os
 import sys
@@ -19,9 +19,13 @@ class JobResearchClient:
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
         
-        # Configure Gemini API
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        self.gemini_model = genai.GenerativeModel('gemini-1.5-pro')
+        # Configure perplexity API
+        api_key=os.getenv("PERPLEXITY_API_KEY")
+        self.gemini_model = LLM(
+            model= "sonar-reasoning-pro",
+            api_key= api_key,
+
+        )
     
     async def connect_to_server(self, server_script_path: str):
         """Connect to the Job Research MCP server
@@ -55,7 +59,7 @@ class JobResearchClient:
         print("\nAvailable prompts:", [prompt.name for prompt in prompts])
 
     async def process_query(self, query: str) -> str:
-        """Process a query using Gemini and available tools"""
+        """Process a query using perplexity and available tools"""
         messages = [
             {
                 "role": "user",
