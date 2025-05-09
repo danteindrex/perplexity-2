@@ -224,6 +224,8 @@ async def fetch_github_repos(ctx: Context, username: str) -> Dict[str, Any]:
 class SimpleSearchTool(BaseTool):
     """Tool for searching using Perplexity API via synchronous HTTP requests"""
     
+    api_key: str = None
+    
     def __init__(self, api_key):
         super().__init__(
             name="SimpleSearch",
