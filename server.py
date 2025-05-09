@@ -303,8 +303,9 @@ def create_analysis_agent() -> Agent:
         Your specialty is analyzing job trends, skill demand, and market conditions to provide actionable insights.""",
         verbose=True,
         allow_delegation=True,
-        tools=[search_tool],
-        llm=llm
+        #tools=[search_tool],
+        llm=llm,
+        code_execution_mode= True
     )
 
 def create_recommendation_agent() -> Agent:
@@ -320,7 +321,7 @@ def create_recommendation_agent() -> Agent:
         and overall career trajectory.""",
         verbose=True,
         allow_delegation=True,
-        tools=[search_tool],
+        code_execution_mode= True,
         llm=llm
     )
 
@@ -935,6 +936,7 @@ def job_research_workflow(resume_id: Optional[int] = None, github_username: str 
             2. The most suitable job opportunities currently available
             3. Market trends and insights relevant to my profile
             4. Strategic recommendations for my job search
+            5. any skills i need to add on to make myself more competitive
             
             Please use the job research workflow tool to generate a comprehensive report.
         """)
