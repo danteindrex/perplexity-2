@@ -1,0 +1,6 @@
+mcp
+mcp-server-git
+httpx
+crewai
+crewai_tools
+requests
