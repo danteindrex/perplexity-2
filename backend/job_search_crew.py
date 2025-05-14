@@ -1,5 +1,5 @@
 
-    import asyncio
+import asyncio
 import os
 from beeai_framework.backend.chat import ChatModel
 from beeai_framework.workflows.agent import AgentWorkflow, AgentWorkflowInput

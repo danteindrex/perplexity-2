@@ -286,10 +286,23 @@ def safe_for_json(obj: Any) -> Union[Dict, List, str, int, float, bool, None]:
     else:
         # Convert non-serializable objects to string
         return str(obj)
+from pydantic import BaseModel
+from typing import List, Optional
+
+class Job(BaseModel):
+    id: str
+    title: str
+    company: str
+    location: str
+    salary: Optional[str]
+    description: Optional[str]
+    skills: Optional[List[str]]
+    explanation_for_recommendation: Optional[str]
+
 
 # MCP Tools for CrewAI Agents
 @mcp.tool()
-async def run_analysis_agent(ctx: Context, input: dict) -> Dict[str, Any]:
+async def run_job_research_workflow(ctx: Context, input: dict) -> Dict[str, Any]:
     """
     Run the analysis agent to analyze resume and GitHub data
     
@@ -433,6 +446,30 @@ async def run_analysis_agent(ctx: Context, input: dict) -> Dict[str, Any]:
         
         Format your response as a comprehensive report with clear sections and actionable insights.
         """,
+        expected_output="""A python list of dictionaries with matching jobs
+        in this format
+
+
+        pydantic model OUTPUT FORMAT
+        [
+
+
+            {"id"}: {"id_number"},
+            {"title"}: {"title"},
+            {company:} {"company name"},
+            {location}: {"must be country of origin or remote"},
+            {salary} :{"salary"},
+            {type}: Optional[str],
+            {"description"}: {"full description of the job according to your research"},
+            {"skills"}: {["skill1","skill2","'skill3"]},
+            {"explanation_for_recommendation"}:{"any other valuable information"},
+
+            ....add more data here
+            ]
+
+            NOTE:
+            ALL JOBS MUST BE REMOTE OR FROM THEIR COUNTRY OF ORIGIN.
+        """
         agent=recommendation_agent
     )
         
@@ -446,9 +483,39 @@ async def run_analysis_agent(ctx: Context, input: dict) -> Dict[str, Any]:
     )
     
     recommendations = run_crew.kickoff()
-    
-    return "\n---\n".join(recommendations)
-    
+    if recommendations.pydantic:
+        return recommendations.pydantic
+    elif recommendations.json_dict:
+        return json.dumps(recommendations.json_dict, indent=2)
+    else:
+        return "Failure"
+from browser_use import Agent
+from langchain_openai import ChatOpenAI
+@mcp.tool()
+
+async def auto(link:str,id_):
+    resume = fetch_resume(id_)
+    from browser_use import Agent, Browser
+    from browser_use.browser.context import BrowserContext
+    from langchain_google_genai import ChatGoogleGenerativeAI
+
+# Reuse existing browser
+    browser = Browser()
+    llm = ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp')
+    agent = Agent(
+        task=f"""Apply for this job {link} using the {resume}""",
+        llm=llm,
+        use_vision=True,
+        browser=browser,
+        message_context="""you are provided with resume data and
+          you are supposed to apply to job link given to you 
+           complete all registration based on the resume """,
+
+    )
+    history = await agent.run()
+    print(result = history.final_result())
+
+
 # Main workflow prompt
 @mcp.prompt()
 def job_research_workflow(input: dict) -> list[base.Message]:
