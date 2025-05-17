@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentPage = 1;
 
     try {
-      const resp = await fetch(`/get_jobs?github_username=${encodeURIComponent(githubUsername)}&resume_id=${encodeURIComponent(resumeId)}`);
+      const resp = await fetch(`http://localhost:8000/get_jobs?github_username=${encodeURIComponent(githubUsername)}&resume_id=${encodeURIComponent(resumeId)}`);
       if (!resp.ok) throw new Error(`Server error: ${resp.statusText}`);
       allJobs = await resp.json();
 
@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Apply for job: send POST to /auto_apply
   async function applyForJob(jobId) {
     try {
-      const resp = await fetch('/auto_apply', {
+      const resp = await fetch('http://localhost:8000/auto_apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ job_id: jobId })
