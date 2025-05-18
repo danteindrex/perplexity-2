@@ -10,6 +10,7 @@ server_params = StdioServerParameters(
 )
 from pydantic import BaseModel
 from typing import List, Optional
+from database_utils import add_resume
 
 class Job(BaseModel):
     id: str
@@ -31,9 +32,6 @@ app = FastAPI()
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
-
-
-
 
 
 # Optional: create a sampling callback
@@ -73,19 +71,29 @@ async def run():
             async def run_analysis(github_username: str, resume_id):
                 tools = await session.list_tools()
                 print(tools)
-                result:Job = await session.call_tool("run_job_research_workflow",
-                                                  arguments={"github_username": github_username,
-                                                             "resume_id":resume_id})
+                result:Job = await session.call_tool(
+                    "run_job_research_workflow",
+                    arguments={"github_username": github_username,"resume_id":resume_id}
+                )
                 results= jsonable_encoder(result)
-
-
                 return results
+                
             @app.post("/auto_apply")
             async def auto(job_links :str):
-                result = await session.call_tool("auto",
-                                                  arguments={"job_link": job_links,})
+                result = await session.call_tool("auto",arguments={"job_link": job_links,})
 
-
+            #Endpoint to add a new resume to the db
+            @app.post("/resumes/")
+            async def post_resume(resume: Resume):
+                resume_new = add_resume(
+                    name=resume.name,
+                    email=resume.email,
+                    content=resume.content,
+                    skills=resume.skills,
+                    experience=resume.experience,
+                    education=resume.education,
+                )
+                return {"message": "Resume added"}
 
             # List available tools
             
