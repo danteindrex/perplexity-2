@@ -4,3 +4,4 @@ httpx
 crewai
 crewai_tools
 requests
+fastapi_mcp

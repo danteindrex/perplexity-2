@@ -6,16 +6,15 @@ A sophisticated agentic system for deep job market research and personalized rec
 
 This system integrates several advanced components:
 
-- **MCP (Mission Control Protocol)** server for tool orchestration
+- **MCP (Model Context Protocol)** server for tool orchestration
 - **CrewAI** agents for specialized analysis and recommendations
-- **Gemini LLM** (Google's generative AI) for powering intelligent agents
 - **Perplexity API** for comprehensive internet search
 - **SQLite** database for resume storage and retrieval
 - **GitHub API** integration for repository analysis
 
 ### Core Components
 
-1. **MCP Server** (`job_research_system.py`)
+1. **MCP Server and fastapi** (`server.py`)
    - FastMCP implementation with type-safe lifecycle management
    - Exposes tools and resources via REST API
    - Manages application context and dependencies
@@ -40,10 +39,6 @@ This system integrates several advanced components:
    - Structured workflow for comprehensive analysis
    - Clear guidelines for output formatting and insights
 
-6. **MCP Client** (`mcp_client.py`)
-   - Gemini LLM integration
-   - API for interacting with the MCP server
-   - Tool execution and response handling
 
 ## Installation
 
@@ -58,8 +53,8 @@ This system integrates several advanced components:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/job-research-agent.git
-cd job-research-agent
+git clone https://github.com/danteindrex/perplexity-2/tree/master
+cd perplexity-2/backend
 
 # Create and activate virtual environment (optional but recommended)
 python -m venv venv
@@ -73,10 +68,6 @@ pip install -r requirements.txt
 
 Copy the example environment file and add your API keys:
 
-```bash
-cp .env.example .env
-# Edit .env with your favorite text editor to add API keys
-```
 
 Required environment variables:
 - `GEMINI_API_KEY`: Your Google Gemini API key
@@ -89,54 +80,14 @@ Required environment variables:
 
 ```bash
 # Start the server
-python job_research_system.py
+fastapi server.py
 ```
 
 The server will start on http://localhost:8000 (or the port specified in your .env file).
 
-### Using the MCP Client
 
-```python
-from mcp_client import JobResearchClient
 
-# Initialize the client
-client = JobResearchClient()
 
-# Run a job research workflow
-results = client.run_job_research(
-    resume_id=1,  # Optional: specific resume ID
-    github_username="yourusername"  # GitHub username for repository analysis
-)
-
-# Access results
-analysis = results["analysis"]
-recommendations = results["recommendations"]
-job_listings = results["job_listings"]
-
-# Print or process results
-print(f"Found {len(job_listings)} relevant job listings")
-print(f"Top recommendation: {recommendations[0]['title']}")
-```
-
-### Adding a Resume
-
-You can add resumes to the database using the provided utility:
-
-```python
-from database_utils import add_resume
-
-# Add a resume
-resume_id = add_resume(
-    name="Jane Smith",
-    email="jane.smith@example.com",
-    content="Full resume text here...",
-    skills="Python, Machine Learning, Data Analysis",
-    experience="5 years as Data Scientist at Tech Corp...",
-    education="MS in Computer Science, Stanford University"
-)
-
-print(f"Resume added with ID: {resume_id}")
-```
 
 ## API Reference
 
@@ -148,28 +99,13 @@ print(f"Resume added with ID: {resume_id}")
   - Search the internet using Perplexity API
   - Parameters: `query` (string)
 
-- `POST /tools/fetch_resume`
-  - Retrieve resume data from database
-  - Parameters: `resume_id` (optional integer)
+- `POST /autoapply`
+  - starts browse-use agent
 
-- `POST /tools/fetch_github_repos`
-  - Fetch GitHub repositories for a user
-  - Parameters: `username` (string)
+- `POST /get-jobs`
+  - provides the jobs
 
-- `POST /tools/run_analysis_agent`
-  - Run deep analysis on resume and GitHub data
-  - Parameters: `resume_id` (optional integer), `github_username` (string)
-
-- `POST /tools/run_recommendation_agent`
-  - Get job recommendations based on analysis
-  - Parameters: `resume_id` (optional integer), `analysis_result` (string)
-
-#### Prompts
-
-- `POST /prompts/job_research_workflow`
-  - Execute full job research workflow
-  - Parameters: `resume_id` (optional integer), `github_username` (string)
-
+##(not implented)
 ### MCP Client Methods
 
 - `search(query)`: Search the internet using Perplexity API
@@ -218,20 +154,6 @@ The SQLite database includes a `resumes` table with the following columns:
 - `education`: TEXT - Educational background
 - `created_at`: TIMESTAMP - When the resume was added
 
-## File Structure
-
-```
-job-research-agent/
-├── job_research_system.py     # Main MCP server implementation
-├── mcp_client.py              # Gemini-powered MCP client
-├── database_utils.py          # Database utility functions
-├── usage_example.py           # Example usage script
-├── requirements.txt           # Project dependencies
-├── .env.example               # Example environment variables
-├── .env                       # Actual environment variables (gitignored)
-├── resumes.db                 # SQLite database (generated)
-└── README.md                  # This documentation
-```
 
 ## Development
 
@@ -308,7 +230,6 @@ def create_new_task(agent, input_data):
 
 - The system performs deep analysis which may take several minutes to complete
 - Perplexity API searches count toward your API usage limits
-- Gemini API calls for CrewAI agents count toward Google AI API quotas
 - Consider implementing caching for repeated searches and analyses
 
 ## Troubleshooting
@@ -339,17 +260,6 @@ The system uses Python's built-in logging module. You can increase verbosity:
 import logging
 logging.basicConfig(level=logging.DEBUG)
 ```
-
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
