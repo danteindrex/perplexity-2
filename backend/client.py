@@ -35,7 +35,7 @@ class JobResearchClient:
         server_params = StdioServerParameters(
             command="python",
             args=[server_script_path],
-            env=None
+            env= True,
         )
         
         stdio_transport = await self.exit_stack.enter_async_context(stdio_client(server_params))
@@ -76,33 +76,18 @@ class JobResearchClient:
             for tool in available_tools
         ])
         
-        system_prompt = f"""You are an assistant that helps with job research using specialized tools.
-Available tools:
-{tools_description}
-
-When you want to use a tool, respond in the following format:
-<tool>
-{{
-  "name": "tool_name",
-  "input": {{
-    "param1": "value1",
-    "param2": "value2"
-  }}
-}}
-</tool>
-
-Then I will execute the tool and provide you with the results."""
 
         # Initialize conversation with LiteLLM
         try:
             response = completion(
                 model="perplexity/sonar-reasoning-pro", 
                 messages=[
-                    {"role": "system", "content": system_prompt},
+                    #{"role": "system", "content": system_prompt},
                     {"role": "user", "content": query}
                 ],
                 max_tokens=4000,
-                api_key=self.api_key
+                api_key=self.api_key,
+                tools= available_tools,
             )
             
             # Extract the content from the response
@@ -115,19 +100,12 @@ Then I will execute the tool and provide you with the results."""
         final_text = [response_content]
         
         # Check for tool calls
-        import re
-        tool_pattern = r"<tool>\s*\{(.*?)\}\s*</tool>"
-        tool_matches = re.findall(tool_pattern, response_content, re.DOTALL)
         
-        for tool_match in tool_matches:
-            try:
-                # Parse the tool call JSON
-                tool_json = json.loads("{" + tool_match + "}")
-                tool_name = tool_json.get("name")
-                tool_args = tool_json.get("input", {})
-                
-                print(f"\nExecuting tool: {tool_name}")
-                print(f"With arguments: {json.dumps(tool_args, indent=2)}")
+        for content in response_content:
+                if content.type =='text':
+                    final_text.append(content.type)
+                elif :
+
                 
                 # Execute tool call
                 result = await self.session.call_tool(tool_name, tool_args)
@@ -530,3 +508,5 @@ async def main():
 if __name__ == "__main__":
     import sys
     asyncio.run(main())
+
+scsc
