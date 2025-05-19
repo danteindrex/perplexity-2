@@ -28,6 +28,7 @@ perplexity/*
 env/
 venv/
 ENV/
+backend/final/.env
 env.bak/
 venv.bak/
 
