@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentPage = 1;
 
     try {
-      const resp = await fetch(`http://localhost:8000/get_jobs?github_username=${encodeURIComponent(githubUsername)}&resume_id=${encodeURIComponent(resumeId)}`);
+      const resp = await fetch(`http://localhost:8003/get_jobs?github_username=${encodeURIComponent(githubUsername)}&resume_id=${encodeURIComponent(resumeId)}`);
       if (!resp.ok) throw new Error(`Server error: ${resp.statusText}`);
       allJobs = await resp.json();
 
