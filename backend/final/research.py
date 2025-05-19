@@ -76,7 +76,7 @@ async def perplexitySearch (query: str):
 #from resume import fetch_resume
 
 @mcp.tool()
-async def run_job_research_workflow(user:str):
+async def run_job_research_workflow(user:str,resume):
     """
     Run the analysis agent to analyze resume and GitHub data
     
@@ -90,19 +90,7 @@ async def run_job_research_workflow(user:str):
 
     # Extract inputs from the dictionary
     #resume_id = resume
-    resume="""
-            Jane Doejane.doe@example.comFull stack developer with 5 years of experience in React, Node.js, and Python.JavaScript, React, Node.js, Python, SQL, Machine Learning, AWS
-        Senior Developer at Tech Co (2020-Present)
-        - Led development of a React-based dashboard application
-        - Implemented CI/CD pipelines using GitHub Actions
-        - Mentored junior developers
-        
-        Software Engineer at Startup Inc (2018-2020)
-        - Built RESTful APIs using Node.js and Express
-        - Implemented machine learning models for data analysis
-        - Worked in an agile team environment
-        Bachelor of Science in Computer Science, University of Technology (2014-2018)2023-01-15 12:00:00�U
-        """
+    resume=resume
     # Get resume data
     #resume_result = fetch_resume(ctx, resume_id)
     #if resume_result["status"] == "error":
