@@ -40,7 +40,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch(
         `http://localhost:5000/get_jobs?github_username=${encodeURIComponent(githubUsername)}&resume_id=${encodeURIComponent(resumeId)}`,
       )
-
+      console.log(response)
+      
       if (!response.ok) {
         // Handle specific error codes
         if (response.status === 422) {
@@ -64,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      allJobs = response
+      allJobs = await response.json
 
       // Hide loading indicator
       loadingIndicator.classList.add("hidden")
