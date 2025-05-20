@@ -71,7 +71,7 @@ async def apply(
 app.mount(
     "/", 
     StaticFiles(directory="/home/lambda/Desktop/projects_personal/perplexity-2/frontend", html=True), 
-    name="react-static"
+    name="Job_UI_STATIC"
 )
 
 mcp = FastApiMCP(

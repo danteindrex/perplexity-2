@@ -247,7 +247,7 @@ async def run_job_research_workflow(user:str,resume):
 
         {analysis_task.output}
         
-        search for and identify the top 40 job opportunities:
+        search, identify and display the --TOP 40-- job opportunities:
         
         Analysis: 
         
