@@ -147,26 +147,26 @@ async def run_job_research_workflow(user:str,resume):
         }
     search_tool= perplexitySearch
     coder= CodeInterpreterTool()
-    from crewai_tools import AIMindTool
+    #from crewai_tools import AIMindTool
 
-    aimind_tool = AIMindTool(
-    datasources=[
-        {
-            "description": "asperbase sales data",
-            "engine": "postgres",
-            "connection_data": {
-                "user":     "postgres",
-                "password": "The$1000matovu",
-                "host":     "db.yrqdeppthubtlfzfpztb.supabase.co",
-                "port":     5432,
-                "database": "postgres",
-                "schema":   "public"
-            },
+    #aimind_tool = AIMindTool(
+    #datasources=[
+     #   {
+      #      "description": "asperbase sales data",
+       #     "engine": "postgres",
+        #    "connection_data": {
+         #       "user":     "postgres",
+          #      "password": "The$1000matovu",
+           ##     "host":     "db.yrqdeppthubtlfzfpztb.supabase.co",
+             #   "port":     5432,
+              #  "database": "postgres",
+              #  "schema":   "public"
+            #},
             
-        }
-    ]
-)
-
+        #}
+    #]
+#)
+ 
     analysis_agent= Agent(
         role="Job Market Analyst",
         goal="Analyze job market trends and provide detailed insights on job opportunities",

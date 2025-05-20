@@ -35,17 +35,44 @@ from final.research import run_job_research_workflow
 from final.auto import auto
 #from final.github import fetch_github_repos
 #
+from fastapi.staticfiles import StaticFiles
 from fastapi_mcp import FastApiMCP
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Query
 app = FastAPI()
 
-@app.get("/get_jobs",operation_id="get the jobs",summary="This tool is used to get jobs")
-async def job(github, resume):
-    return await run_job_research_workflow(github)
 
-@app.post("/get_jobs/apply",operation_id="apply for jobs autonomously still in beta")
-async def apply(link):
+@app.get("/get_jobs",
+         operation_id="get the jobs",
+         summary="This tool is used to get jobs")
+
+async def job(
+    github: str = Query(..., alias="github_username"),
+    resume: str = Query(..., alias="resume_id")
+):
+    return await run_job_research_workflow(github,resume)
+
+@app.post(
+    "/get_jobs/apply",
+    operation_id="apply_for_jobs",
+    summary="Apply for jobs autonomously (beta)"
+)
+async def apply(
+    link: str = Query(..., alias="link")                # maps ?link=... to 'link'; if you prefer JSON body, switch to Body(...) :contentReference[oaicite:21]{index=21}
+):
+    """
+    Initiates the auto-application process for a given link.
+
+    Args:
+      link: A URL or identifier passed by the frontend
+    """
     return await auto(link)
 
+app.mount(
+    "/", 
+    StaticFiles(directory="/home/lambda/Desktop/projects_personal/perplexity-2/frontend", html=True), 
+    name="react-static"
+)
 
 mcp = FastApiMCP(
     app,
