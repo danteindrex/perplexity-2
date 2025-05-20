@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      allJobs = await response.json()
+      allJobs = response
 
       // Hide loading indicator
       loadingIndicator.classList.add("hidden")
