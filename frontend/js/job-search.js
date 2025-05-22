@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/get_jobs?github_username=${encodeURIComponent(githubUsername)}&resume_id=${encodeURIComponent(resumeId)}`,
+        `http://localhost:8080/get_jobs?github_username=${encodeURIComponent(githubUsername)}&resume_id=${encodeURIComponent(resumeId)}`,
       )
       console.log(response)
       
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
         applyBtn.disabled = true
       }
 
-      const response = await fetch("http://localhost:8000/auto_apply", {
+      const response = await fetch("http://localhost:8080/auto_apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ job_id: jobId }),

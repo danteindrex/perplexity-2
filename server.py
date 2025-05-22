@@ -1,11 +1,4 @@
-"""
-Job Research Agent System
-- Uses MCP server to expose tools and data sources
-- Creates CrewAI agents for job analysis and recommendations
-- Integrates with Perplexity API for search 
-- Fetches resume data from SQLite database
-- Fetches GitHub repositories
-"""
+
 
 import os
 import json
@@ -31,8 +24,9 @@ from mcp.server.fastmcp.prompts import base
 
   
 # Set lifespan for MCP server
-from final.research import run_job_research_workflow
-from final.auto import auto
+
+from backend.final.research import run_job_research_workflow
+from backend.final.auto import auto
 #from final.github import fetch_github_repos
 #
 from fastapi.staticfiles import StaticFiles
@@ -70,7 +64,7 @@ async def apply(
 
 app.mount(
     "/", 
-    StaticFiles(directory="/home/lambda/Desktop/projects_personal/perplexity-2/frontend", html=True), 
+    StaticFiles(directory="frontend", html=True), 
     name="Job_UI_STATIC"
 )
 
@@ -81,5 +75,10 @@ mcp = FastApiMCP(
 )
 
 mcp.mount()
+import os
+import uvicorn
 
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, log_level="info")
 
