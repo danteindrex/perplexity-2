@@ -14,10 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const errorMessage    = document.getElementById("errorMessage");
   const successModal    = document.getElementById("successModal");
   const modalCloseButtons = document.querySelectorAll(".modal-close");
+  const resumeFileInput = document.getElementById("resumeFile");
 
   let allJobs     = [];
   let currentPage = 1;
   const jobsPerPage = 10;
+  let resumeText = "";
 
   // On page load: show the Results container by default,
   // but hide “No Results” and “Loading” and any modals.
@@ -29,15 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
   loadMoreBtn.classList.add("hidden");
 
   // ───────────────────────────────────────────────────────────────────────────
-  // Handle form submission: fetch jobs from http://localhost:5000/get_jobs
+  // Handle PDF file upload
   // ───────────────────────────────────────────────────────────────────────────
-  jobSearchForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const githubUsername = document.getElementById("githubUsername").value.trim()
-    //const resumeId = document.getElementById("resumeId").value.trim()
-
-    //grab uploaded file
+  resumeFileInput?.addEventListener("change", (event) => {
     const file = event.target.files[0];
     if (!file) return;
   
@@ -45,19 +41,44 @@ document.addEventListener("DOMContentLoaded", () => {
     reader.onload = async function(e) {
       const typedarray = new Uint8Array(e.target.result);
   
-      // Load the PDF
-      const pdf = await pdfjsLib.getDocument({data: typedarray}).promise;
-      let textContent = "";
+      try {
+        // Load the PDF
+        const pdf = await pdfjsLib.getDocument({data: typedarray}).promise;
+        let textContent = "";
   
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const txt = await page.getTextContent();
-        textContent += txt.items.map(item => item.str).join(' ') + "\n";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const txt = await page.getTextContent();
+          textContent += txt.items.map(item => item.str).join(' ') + "\n";
+        }
+        
+        resumeText = textContent;
+        console.log("Resume text extracted successfully");
+      } catch (err) {
+        console.error("Error extracting PDF text:", err);
+        showErrorModal("Failed to extract text from PDF. Please upload a valid PDF file.");
       }
+    };
+    
+    reader.readAsArrayBuffer(file);
+  });
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // Handle form submission: fetch jobs from http://localhost:5000/get_jobs
+  // ───────────────────────────────────────────────────────────────────────────
+  jobSearchForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    if (!githubUsername || !resumeId) {
-      showErrorModal("Please enter both GitHub username and Resume ID");
+    const githubUsername = document.getElementById("githubUsername").value.trim();
+    const resumeId = document.getElementById("resumeId")?.value.trim() || "";
+
+    if (!githubUsername) {
+      showErrorModal("Please enter your GitHub username");
+      return;
+    }
+
+    if (!resumeId && !resumeText) {
+      showErrorModal("Please either enter a Resume ID or upload a resume file");
       return;
     }
 
@@ -69,9 +90,31 @@ document.addEventListener("DOMContentLoaded", () => {
     currentPage = 1;
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/get_jobs?github_username=${encodeURIComponent(githubUsername)}&resume_id=${encodeURIComponent(resumeId)}`
-      );
+      // Build request URL with appropriate parameters
+      let url = `http://localhost:5000/get_jobs?github_username=${encodeURIComponent(githubUsername)}`;
+      
+      if (resumeId) {
+        url += `&resume_id=${encodeURIComponent(resumeId)}`;
+      }
+      
+      // Create request options object
+      const requestOptions = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+      
+      // If we have resume text from a file upload, add it to the body
+      if (resumeText && !resumeId) {
+        requestOptions.method = 'POST';
+        requestOptions.body = JSON.stringify({
+          github_username: githubUsername,
+          resume_text: resumeText
+        });
+      }
+
+      const response = await fetch(url, requestOptions);
 
       // If server returns non‐2xx, handle it here
       if (!response.ok) {
