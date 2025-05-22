@@ -187,7 +187,7 @@ async def run_job_research_workflow(user:str,resume):
         description=f"""
         Analyze the following resume and GitHub profile to identify key skills, experience, and potential career paths:
         obtain the resume details using the aimind tool
-        Resume: 
+        Resume: {resume}
         and the 
         
         GitHub Projects: {json.dumps(github_result, indent=2)}

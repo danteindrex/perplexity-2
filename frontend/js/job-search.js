@@ -2,6 +2,11 @@
 // job-search.js (updated)
 // ========================
 document.addEventListener("DOMContentLoaded", () => {
+  // Check if PDF.js is available
+  if (typeof pdfjsLib === 'undefined') {
+    console.error("PDF.js library not found. Please check your script includes.");
+  }
+  
   // Element references
   const jobSearchForm   = document.getElementById("jobSearchForm");
   const loadingIndicator = document.getElementById("loadingIndicator");
@@ -14,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const errorMessage    = document.getElementById("errorMessage");
   const successModal    = document.getElementById("successModal");
   const modalCloseButtons = document.querySelectorAll(".modal-close");
-  const resumeFileInput = document.getElementById("resumeFile");
+  const pdfInput = document.getElementById("pdfInput");
 
   let allJobs     = [];
   let currentPage = 1;
@@ -22,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let resumeText = "";
 
   // On page load: show the Results container by default,
-  // but hide “No Results” and “Loading” and any modals.
+  // but hide "No Results" and "Loading" and any modals.
   jobResults.classList.remove("hidden");
   noResults.classList.add("hidden");
   loadingIndicator.classList.add("hidden");
@@ -33,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ───────────────────────────────────────────────────────────────────────────
   // Handle PDF file upload
   // ───────────────────────────────────────────────────────────────────────────
-  resumeFileInput?.addEventListener("change", (event) => {
+  pdfInput?.addEventListener("change", (event) => {
     const file = event.target.files[0];
     if (!file) return;
   
@@ -64,25 +69,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ───────────────────────────────────────────────────────────────────────────
-  // Handle form submission: fetch jobs from http://localhost:5000/get_jobs
+  // Handle form submission: fetch jobs from http://localhost:8080/get-jobs
   // ───────────────────────────────────────────────────────────────────────────
   jobSearchForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const githubUsername = document.getElementById("githubUsername").value.trim();
-    const resumeId = document.getElementById("resumeId")?.value.trim() || "";
 
     if (!githubUsername) {
       showErrorModal("Please enter your GitHub username");
       return;
     }
 
-    if (!resumeId && !resumeText) {
-      showErrorModal("Please either enter a Resume ID or upload a resume file");
+    if (!resumeText && !pdfInput.files[0]) {
+      showErrorModal("Please upload a resume file");
       return;
     }
 
-    // Show loading; hide any “No Results” text or previous job cards
+    // Show loading; hide any "No Results" text or previous job cards
     loadingIndicator.classList.remove("hidden");
     noResults.classList.add("hidden");
     jobListings.innerHTML = "";
@@ -90,31 +94,24 @@ document.addEventListener("DOMContentLoaded", () => {
     currentPage = 1;
 
     try {
-      // Build request URL with appropriate parameters
-      let url = `http://localhost:5000/get_jobs?github_username=${encodeURIComponent(githubUsername)}`;
-      
-      if (resumeId) {
-        url += `&resume_id=${encodeURIComponent(resumeId)}`;
-      }
-      
-      // Create request options object
-      const requestOptions = {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      // Create request body as JSON - matching the backend's expected format
+      // IMPORTANT: Backend expects "resume_id", not "resume_text"
+      const requestBody = {
+        github_username: githubUsername,
+        resume_id: resumeText || "default-resume" // Use extracted text as resume_id
       };
-      
-      // If we have resume text from a file upload, add it to the body
-      if (resumeText && !resumeId) {
-        requestOptions.method = 'POST';
-        requestOptions.body = JSON.stringify({
-          github_username: githubUsername,
-          resume_text: resumeText
-        });
-      }
 
-      const response = await fetch(url, requestOptions);
+      console.log("Sending request to backend:", requestBody);
+
+      // Send data to the correct endpoint with proper method and headers
+      const response = await fetch("http://localhost:8080/get_jobs", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
 
       // If server returns non‐2xx, handle it here
       if (!response.ok) {
@@ -122,19 +119,29 @@ document.addEventListener("DOMContentLoaded", () => {
           let errorDetail = "The server couldn't process your request due to validation errors.";
           try {
             const errorData = await response.json();
-            if (errorData.detail || errorData.message) {
-              errorDetail = errorData.detail || errorData.message;
+            console.error("Validation error details:", errorData);
+            if (errorData.detail) {
+              errorDetail = Array.isArray(errorData.detail) 
+                ? errorData.detail.map(err => `${err.loc.join('.')} - ${err.msg}`).join('; ')
+                : errorData.detail;
             }
-          } catch (_) { /* ignore parse errors */ }
+          } catch (parseError) { 
+            console.error("Error parsing error response:", parseError);
+          }
 
-          throw new Error(`Validation Error (422): ${errorDetail}. Please check that your GitHub username and resume ID are correct.`);
+          throw new Error(`Validation Error (422): ${errorDetail}. Please check your inputs.`);
         } else {
           throw new Error(`Server error: ${response.status} ${response.statusText}`);
         }
       }
 
-      // Parse JSON as an array of job objects
-      allJobs = await response.json();
+      // Parse JSON from response
+      const responseData = await response.json();
+      console.log("Received jobs:", responseData);
+
+      // Extract the jobs array from the response
+      // The backend returns { jobs: [...] } so we need to get the jobs array
+      allJobs = responseData.jobs || [];
 
       // Hide the loading spinner
       loadingIndicator.classList.add("hidden");
@@ -185,7 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ───────────────────────────────────────────────────────────────────────────
-  // Create a job card element (unchanged)
+  // Create a job card element
   // ───────────────────────────────────────────────────────────────────────────
   function createJobCard(job) {
     const card = document.createElement("div");
@@ -224,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // Apply for job: send POST to /auto_apply (unchanged)
+  // Apply for job: send POST to /get_jobs/apply
   // ───────────────────────────────────────────────────────────────────────────
   async function applyForJob(jobId) {
     try {
@@ -234,10 +241,13 @@ document.addEventListener("DOMContentLoaded", () => {
         applyBtn.disabled = true;
       }
 
-      const response = await fetch("http://localhost:8080/auto_apply", {
+      // Instead of sending the link in the request body, append it as a query parameter
+      const response = await fetch(`http://localhost:8080/get_jobs/apply?link=${encodeURIComponent(jobId)}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job_id: jobId }),
+        headers: { 
+          "Accept": "application/json"
+        }
+        // No body needed as the link is in the URL
       });
 
       if (!response.ok) {
@@ -273,13 +283,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const tipElement = document.createElement("p");
       tipElement.className = "text-sm text-gray-500 mt-2";
       tipElement.innerHTML =
-        "Troubleshooting tips:<br>• Ensure your GitHub username is spelled correctly<br>• Check that your resume ID is valid<br>• Try using a different resume ID format (e.g., numeric only)";
+        "Troubleshooting tips:<br>• Ensure your GitHub username is spelled correctly<br>• Check that your PDF file is valid<br>• The request may have validation issues (see console for details)";
       errorMessage.appendChild(tipElement);
     } else if (msg.includes("Failed to fetch")) {
       const tipElement = document.createElement("p");
       tipElement.className = "text-sm text-gray-500 mt-2";
       tipElement.innerHTML =
-        "Troubleshooting tips:<br>• Check that the API server is running at http://localhost:5000<br>• Verify your network connection<br>• Try again in a few moments";
+        "Troubleshooting tips:<br>• Check that the API server is running at http://localhost:8080<br>• Verify your network connection<br>• Try again in a few moments";
+      errorMessage.appendChild(tipElement);
+    } else if (msg.includes("Method not allowed")) {
+      const tipElement = document.createElement("p");
+      tipElement.className = "text-sm text-gray-500 mt-2";
+      tipElement.innerHTML =
+        "Troubleshooting tips:<br>• The API endpoint may have changed<br>• Check that the server is properly configured<br>• Contact the administrator for assistance";
       errorMessage.appendChild(tipElement);
     }
 
@@ -310,6 +326,8 @@ document.addEventListener("DOMContentLoaded", () => {
     jobListings.innerHTML = "";
     jobResults.classList.remove("hidden");
     jobSearchForm.reset();
+    // Reset the resumeText variable when searching again
+    resumeText = "";
     window.scrollTo({ top: jobSearchForm.offsetTop - 100, behavior: "smooth" });
   });
 

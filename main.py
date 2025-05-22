@@ -32,19 +32,35 @@ from backend.final.auto import auto
 from fastapi.staticfiles import StaticFiles
 from fastapi_mcp import FastApiMCP
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Query
+from fastapi import Query, Body
+from pydantic import BaseModel
+
 app = FastAPI()
 
+# Add CORS middleware - this fixes the CORS issue
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+)
 
-@app.get("/get_jobs",
+class JobRequest(BaseModel):
+    github_username: str
+    resume_id: str
+
+class ApplyRequest(BaseModel):
+    link: str
+
+@app.post("/get_jobs",
          operation_id="get the jobs",
          summary="This tool is used to get jobs")
 
-async def job(
-    github: str = Query(..., alias="github_username"),
-    resume: str = Query(..., alias="resume_id")
-):
-    return await run_job_research_workflow(github,resume)
+async def job(request: JobRequest):
+    github = request.github_username
+    resume = request.resume_id
+    return await run_job_research_workflow(github, resume)
 
 @app.post(
     "/get_jobs/apply",
@@ -52,15 +68,25 @@ async def job(
     summary="Apply for jobs autonomously (beta)"
 )
 async def apply(
-    link: str = Query(..., alias="link")                # maps ?link=... to 'link'; if you prefer JSON body, switch to Body(...) :contentReference[oaicite:21]{index=21}
+    request: ApplyRequest  # Accept the link in the request body
 ):
     """
     Initiates the auto-application process for a given link.
 
     Args:
-      link: A URL or identifier passed by the frontend
+      request: Contains the link to apply for
     """
-    return await auto(link)
+    return await auto(request.link)
+
+# Add an OPTIONS method handler for /get_jobs to help with CORS preflight requests
+@app.options("/get_jobs")
+async def options_get_jobs():
+    return {}
+
+# Add an OPTIONS method handler for /get_jobs/apply to help with CORS preflight requests
+@app.options("/get_jobs/apply")
+async def options_apply():
+    return {}
 
 app.mount(
     "/", 
