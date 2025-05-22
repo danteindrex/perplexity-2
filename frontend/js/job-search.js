@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
       loadingIndicator.classList.add("hidden")
       showErrorModal(`Failed to fetch jobs: ${err.message}`)
     }
-  })
+  }})
 
   // Display a page of jobs; show or hide Load More
   function displayJobsPage(page) {
