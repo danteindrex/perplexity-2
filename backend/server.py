@@ -41,7 +41,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Query
 app = FastAPI()
 
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 @app.get("/get_jobs",
          operation_id="get the jobs",
          summary="This tool is used to get jobs")
