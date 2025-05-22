@@ -14,20 +14,8 @@ from browser_use import Agent
 from langchain_openai import ChatOpenAI
 @mcp.tool()
 
-async def auto(link:str,):
-    resume="""
-            Jane Doejane.doe@example.comFull stack developer with 5 years of experience in React, Node.js, and Python.JavaScript, React, Node.js, Python, SQL, Machine Learning, AWS
-        Senior Developer at Tech Co (2020-Present)
-        - Led development of a React-based dashboard application
-        - Implemented CI/CD pipelines using GitHub Actions
-        - Mentored junior developers
-        
-        Software Engineer at Startup Inc (2018-2020)
-        - Built RESTful APIs using Node.js and Express
-        - Implemented machine learning models for data analysis
-        - Worked in an agile team environment
-        Bachelor of Science in Computer Science, University of Technology (2014-2018)2023-01-15 12:00:00�U
-        """
+async def auto(link:str,resume):
+    resume=resume
     from browser_use import Agent, Browser
     from browser_use.browser.context import BrowserContext
     from langchain_google_genai import ChatGoogleGenerativeAI
@@ -43,8 +31,10 @@ async def auto(link:str,):
         use_vision=True,
         browser=browser,
         message_context="""you are provided with resume data and
-          you are supposed to apply to job link given to you 
-          finish all necesary captchas and robot detection apropriately
+          you are supposed to apply to job link given to you.
+
+          if you encounter any  captchas and robot detections allow the user to finish it.
+          do not do anything untill the user accomplishes it successfully.
            complete all registration based on the resume """,
 
     )
