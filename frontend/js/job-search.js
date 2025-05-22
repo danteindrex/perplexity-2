@@ -21,7 +21,26 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault()
 
     const githubUsername = document.getElementById("githubUsername").value.trim()
-    const resumeId = document.getElementById("resumeId").value.trim()
+    //const resumeId = document.getElementById("resumeId").value.trim()
+
+    //grab uploaded file
+    const file = event.target.files[0];
+    if (!file) return;
+  
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const typedarray = new Uint8Array(e.target.result);
+  
+      // Load the PDF
+      const pdf = await pdfjsLib.getDocument({data: typedarray}).promise;
+      let textContent = "";
+  
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const txt = await page.getTextContent();
+        textContent += txt.items.map(item => item.str).join(' ') + "\n";
+      }
+
 
     if (!githubUsername || !resumeId) {
       showErrorModal("Please enter both GitHub username and Resume ID")
