@@ -234,7 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
         applyBtn.disabled = true;
       }
 
-      const response = await fetch("http://localhost:8000/auto_apply", {
+      const response = await fetch("http://localhost:8080/auto_apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ job_id: jobId }),

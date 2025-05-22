@@ -1,0 +1,10 @@
+mcp
+mcp-server-git
+httpx
+crewai
+crewai_tools
+requests
+fastapi_mcp
+fastapi[standard]
+browser-use
+uvicorn[standard]
