@@ -6,25 +6,28 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof pdfjsLib === 'undefined') {
     console.error("PDF.js library not found. Please check your script includes.");
   }
-  
+
   // Element references
-  const jobSearchForm   = document.getElementById("jobSearchForm");
+  const jobSearchForm = document.getElementById("jobSearchForm");
   const loadingIndicator = document.getElementById("loadingIndicator");
-  const jobResults      = document.getElementById("jobResults");
-  const jobListings     = document.getElementById("jobListings");
-  const noResults       = document.getElementById("noResults");
-  const searchAgainBtn  = document.getElementById("searchAgainBtn");
-  const loadMoreBtn     = document.getElementById("loadMoreBtn");
-  const errorModal      = document.getElementById("errorModal");
-  const errorMessage    = document.getElementById("errorMessage");
-  const successModal    = document.getElementById("successModal");
+  const jobResults = document.getElementById("jobResults");
+  const jobListings = document.getElementById("jobListings");
+  const noResults = document.getElementById("noResults");
+  const searchAgainBtn = document.getElementById("searchAgainBtn");
+  const loadMoreBtn = document.getElementById("loadMoreBtn");
+  const errorModal = document.getElementById("errorModal");
+  const errorMessage = document.getElementById("errorMessage");
+  const successModal = document.getElementById("successModal");
   const modalCloseButtons = document.querySelectorAll(".modal-close");
   const pdfInput = document.getElementById("pdfInput");
 
-  let allJobs     = [];
+  let allJobs = [];
   let currentPage = 1;
   const jobsPerPage = 10;
   let resumeText = "";
+
+  // Define a cache key for storing job results
+  const CACHE_KEY = "job_search_results";
 
   // On page load: show the Results container by default,
   // but hide "No Results" and "Loading" and any modals.
@@ -41,22 +44,24 @@ document.addEventListener("DOMContentLoaded", () => {
   pdfInput?.addEventListener("change", (event) => {
     const file = event.target.files[0];
     if (!file) return;
-  
+
     const reader = new FileReader();
     reader.onload = async function(e) {
       const typedarray = new Uint8Array(e.target.result);
-  
+
       try {
         // Load the PDF
-        const pdf = await pdfjsLib.getDocument({data: typedarray}).promise;
+        const pdf = await pdfjsLib.getDocument({
+          data: typedarray
+        }).promise;
         let textContent = "";
-  
+
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const txt = await page.getTextContent();
           textContent += txt.items.map(item => item.str).join(' ') + "\n";
         }
-        
+
         resumeText = textContent;
         console.log("Resume text extracted successfully");
       } catch (err) {
@@ -64,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showErrorModal("Failed to extract text from PDF. Please upload a valid PDF file.");
       }
     };
-    
+
     reader.readAsArrayBuffer(file);
   });
 
@@ -84,6 +89,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!resumeText && !pdfInput.files[0]) {
       showErrorModal("Please upload a resume file");
       return;
+    }
+
+    // Generate a unique cache key based on username and resume text
+    const currentCacheKey = `${CACHE_KEY}_${githubUsername}_${btoa(resumeText)}`;
+
+    // Try to retrieve data from cache first
+    const cachedData = sessionStorage.getItem(currentCacheKey);
+    if (cachedData) {
+      console.log("Loading jobs from cache...");
+      allJobs = JSON.parse(cachedData);
+      loadingIndicator.classList.add("hidden"); // Hide loading since we have data
+      if (!Array.isArray(allJobs) || allJobs.length === 0) {
+        jobResults.classList.add("hidden");
+        noResults.classList.remove("hidden");
+      } else {
+        jobResults.classList.remove("hidden");
+        displayJobsPage(currentPage);
+      }
+      return; // Exit the function, no need to call API
     }
 
     // Show loading; hide any "No Results" text or previous job cards
@@ -121,11 +145,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const errorData = await response.json();
             console.error("Validation error details:", errorData);
             if (errorData.detail) {
-              errorDetail = Array.isArray(errorData.detail) 
-                ? errorData.detail.map(err => `${err.loc.join('.')} - ${err.msg}`).join('; ')
-                : errorData.detail;
+              errorDetail = Array.isArray(errorData.detail) ?
+                errorData.detail.map(err => `${err.loc.join('.') || 'body'} - ${err.msg}`).join('; ') :
+                errorData.detail;
             }
-          } catch (parseError) { 
+          } catch (parseError) {
             console.error("Error parsing error response:", parseError);
           }
 
@@ -142,6 +166,9 @@ document.addEventListener("DOMContentLoaded", () => {
       // Extract the jobs array from the response
       // The backend returns { jobs: [...] } so we need to get the jobs array
       allJobs = responseData.jobs || [];
+
+      // Store the fetched data in cache
+      sessionStorage.setItem(currentCacheKey, JSON.stringify(allJobs));
 
       // Hide the loading spinner
       loadingIndicator.classList.add("hidden");
@@ -167,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ───────────────────────────────────────────────────────────────────────────
   function displayJobsPage(page) {
     const start = (page - 1) * jobsPerPage;
-    const end   = start + jobsPerPage;
+    const end = start + jobsPerPage;
     const pageJobs = allJobs.slice(start, end);
 
     pageJobs.forEach((job) => {
@@ -244,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Instead of sending the link in the request body, append it as a query parameter
       const response = await fetch(`http://localhost:8080/get_jobs/apply?link=${encodeURIComponent(jobId)}`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Accept": "application/json"
         }
         // No body needed as the link is in the URL
@@ -328,7 +355,12 @@ document.addEventListener("DOMContentLoaded", () => {
     jobSearchForm.reset();
     // Reset the resumeText variable when searching again
     resumeText = "";
-    window.scrollTo({ top: jobSearchForm.offsetTop - 100, behavior: "smooth" });
+    // Optionally, clear the cache when a new search is initiated
+    sessionStorage.removeItem(CACHE_KEY);
+    window.scrollTo({
+      top: jobSearchForm.offsetTop - 100,
+      behavior: "smooth"
+    });
   });
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -336,7 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ───────────────────────────────────────────────────────────────────────────
   function init3DJobCards() {
     document.querySelectorAll(".hover-3d-card").forEach((card) => {
-      card.querySelector(".apply-btn")?.addEventListener("click", function () {
+      card.querySelector(".apply-btn")?.addEventListener("click", function() {
         applyForJob(this.dataset.jobId);
       });
       // The 3D tilt effect is still handled in effects.js

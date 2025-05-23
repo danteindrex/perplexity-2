@@ -6,7 +6,6 @@
     <title>AI Job Research | Job Search</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Add Three.js from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min
 
 Let me fix the job-search.html file:
@@ -20,13 +19,13 @@ Let me fix the job-search.html file:
     <title>AI Job Research | Job Search</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Add Three.js from CDN -->
+    
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
     
-    <!-- PDF.js library and worker (must be loaded before our JS) -->
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
-        // Initialize PDF.js worker
+        
         pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
@@ -35,7 +34,7 @@ Let me fix the job-search.html file:
     <div class="cursor"></div>
     <div class="cursor-follower"></div>
     
-    <!-- Loading Screen -->
+    
     <div class="loading-screen">
         <div class="loading-circle"></div>
         <div class="loading-text">
@@ -43,7 +42,7 @@ Let me fix the job-search.html file:
         </div>
     </div>
     
-    <!-- Navigation -->
+    
     <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-sm border-b border-gray-100">
         <div class="container mx-auto px-6 py-4">
             <div class="flex justify-between items-center">
@@ -65,7 +64,7 @@ Let me fix the job-search.html file:
             </div>
         </div>
         
-        <!-- Mobile Menu -->
+        
         <div class="mobile-menu hidden md:hidden">
             <div class="container mx-auto px-6 py-4 flex flex-col space-y-4">
                 <a href="index.html" class="nav-link">Home</a>
@@ -77,7 +76,7 @@ Let me fix the job-search.html file:
         </div>
     </nav>
 
-    <!-- Job Search Section -->
+    
     <section class="min-h-screen pt-32 pb-20">
         <div class="container mx-auto px-6">
             <h1 class="text-4xl md:text-5xl font-bold mb-10 hover-3d">Find Your Perfect AI Job</h1>
@@ -101,7 +100,7 @@ Let me fix the job-search.html file:
                 </form>
             </div>
             
-            <!-- Loading Indicator -->
+            
             <div id="loadingIndicator" class="hidden">
                 <div class="flex flex-col items-center justify-center py-12">
                     <div class="w-16 h-16 border-4 border-gray-200 border-t-gray-800 rounded-full animate-spin mb-4"></div>
@@ -109,7 +108,7 @@ Let me fix the job-search.html file:
                 </div>
             </div>
             
-            <!-- No Results -->
+            
             <div id="noResults" class="hidden">
                 <div class="flex flex-col items-center justify-center py-12 text-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,12 +120,12 @@ Let me fix the job-search.html file:
                 </div>
             </div>
             
-            <!-- Job Results -->
+            
             <div id="jobResults" class="hidden">
                 <h2 class="text-3xl font-bold mb-6 hover-3d">Recommended Jobs</h2>
                 
                 <div id="jobListings" class="mb-10">
-                    <!-- Job listings will be inserted here -->
+                    
                 </div>
                 
                 <div class="flex justify-center">
@@ -136,7 +135,7 @@ Let me fix the job-search.html file:
         </div>
     </section>
     
-    <!-- Success Modal -->
+    
     <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden modal-backdrop">
         <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 modal-content">
             <div class="text-center">
@@ -152,7 +151,7 @@ Let me fix the job-search.html file:
         </div>
     </div>
     
-    <!-- Error Modal -->
+    
     <div id="errorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden modal-backdrop">
         <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 modal-content">
             <div class="text-center">
@@ -168,7 +167,7 @@ Let me fix the job-search.html file:
         </div>
     </div>
 
-    <!-- Footer -->
+    
     <footer class="py-10 bg-white border-t border-gray-100">
         <div class="container mx-auto px-6">
             <div class="flex flex-col md:flex-row justify-between items-center">
@@ -208,7 +207,7 @@ Let me fix the job-search.html file:
         </div>
     </footer>
 
-    <!-- Application scripts (must be loaded after the PDF.js setup) -->
+    
     <script src="js/main.js"></script>
     <script src="js/effects.js"></script>
     <script src="js/job-search.js"></script>
