@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Element references
   const jobSearchForm = document.getElementById("jobSearchForm");
+  // ADD THIS LINE: Get reference to the GitHub username input
+
   const loadingIndicator = document.getElementById("loadingIndicator");
   const jobResults = document.getElementById("jobResults");
   const jobListings = document.getElementById("jobListings");
@@ -79,7 +81,16 @@ document.addEventListener("DOMContentLoaded", () => {
   jobSearchForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const githubUsername = document.getElementById("githubUsername").value.trim();
+    // THIS IS THE BLOCK TO ADD/MODIFY
+
+    // Store the GitHub username in localStorage BEFORE proceeding
+    if (githubUsername) {
+      localStorage.setItem('githubUsername', githubUsername);
+    } else {
+      // Optional: remove the item if the username field is cleared
+      localStorage.removeItem('githubUsername');
+    }
+    // END OF BLOCK TO ADD/MODIFY
 
     if (!githubUsername) {
       showErrorModal("Please enter your GitHub username");
@@ -257,9 +268,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return card;
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // Apply for job: send POST to /get_jobs/apply
-  // ───────────────────────────────────────────────────────────────────────────
+
+
+
+
+
   async function applyForJob(jobId) {
     try {
       const applyBtn = document.querySelector(`.apply-btn[data-job-id="${jobId}"]`);
@@ -273,7 +286,13 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         headers: {
           "Accept": "application/json"
-        }
+        },
+        body: JSON.stringify({
+          "github_username": githubUsername,
+          "resume_id": resumeText || "default-resume",
+          "job_id": jobId
+        })
+
         // No body needed as the link is in the URL
       });
 
@@ -356,7 +375,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Reset the resumeText variable when searching again
     resumeText = "";
     // Optionally, clear the cache when a new search is initiated
-    sessionStorage.removeItem(CACHE_KEY);
+    // ADD THIS LINE: Clear the GitHub username from localStorage on new search
+    localStorage.removeItem('githubUsername');
+    sessionStorage.removeItem(CACHE_KEY); // Existing cache clear
     window.scrollTo({
       top: jobSearchForm.offsetTop - 100,
       behavior: "smooth"

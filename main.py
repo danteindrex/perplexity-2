@@ -61,6 +61,12 @@ async def job(request: JobRequest):
     github = request.github_username
     resume = request.resume_id
     return await run_job_research_workflow(github, resume)
+@app.post(
+        "/fetch",
+        operation_id="fetch github repositories"
+)
+async def fetch(github):
+    return
 
 @app.post(
     "/get_jobs/apply",

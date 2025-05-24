@@ -1,5 +1,28 @@
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize 3D effects for profile elements
+
+  const profileDataDiv = document.getElementById("profileData");
+  const githubUsername = localStorage.getItem('githubUsername');
+  if (githubUsername) {
+    fetchGitHubData(githubUsername);
+  } else {
+    profileDataDiv.innerHTML = "<p>Please complete a job search first to load your profile data.</p>";
+  }
+  async function fetchGitHubData(username) {
+    profileDataDiv.innerHTML = "<p>Loading profile data...</p>";
+    try {
+      const response = await fetch(`https://api.github.com/users/${username}`);
+      if (!response.ok) {
+        throw new Error(`GitHub API error: ${response.status}`);
+      }
+      const data = await response.json();
+      displayProfileData(data);
+    } catch (error) {
+      console.error("Error fetching GitHub data:", error);
+      profileDataDiv.innerHTML = `<p>Error loading profile data: ${error.message}</p>`;
+    }
+  }
+  function displayProfileData(data) {
   init3DProfileElements()
 
   // Initialize parallax effects
@@ -7,7 +30,55 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize hover effects for application cards
   initApplicationCards()
+  if (data) {
+    profileDataDiv.innerHTML = `
+              <div class="bg-white rounded-xl shadow-lg p-8">
+                  <h2 class="text-3xl font-bold mb-6 hover-3d">Your GitHub Profile</h2>
+                  <div class="flex items-center space-x-6 mb-6">
+                      <img src="${data.avatar_url}" alt="GitHub Avatar" class="w-24 h-24 rounded-full">
+                      <div>
+                          <h3 class="text-2xl font-bold">${data.name || data.login}</h3>
+                          <p class="text-gray-600">${data.bio || "No bio available."}</p>
+                          <a href="${data.html_url}" target="_blank" class="text-blue-500 hover:underline">View on GitHub</a>
+                      </div>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                          <p><span class="font-semibold">Username:</span> ${data.login}</p>
+                          <p><span class="font-semibold">Location:</span> ${data.location || "Not specified"}</p>
+                          <p><span class="font-semibold">Email:</span> ${data.email || "Not available"}</p>
+                      </div>
+                      <div>
+                          <p><span class="font-semibold">Followers:</span> ${data.followers}</p>
+                          <p><span class="font-semibold">Following:</span> ${data.following}</p>
+                          <p><span class="font-semibold">Public Repos:</span> ${data.public_repos}</p>
+                      </div>
+                  </div>
+              </div>
+          `;
+  } else {
+    profileDataDiv.innerHTML = "<p>No profile data available.</p>";
+  }
+}
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Initialize 3D effects for profile elements
 function init3DProfileElements() {
@@ -22,7 +93,7 @@ function init3DProfileElements() {
       const y = e.clientY - rect.top
 
       const centerX = rect.width / 2
-      const centerY = rect.height / 2
+      const centerY = rect.height / 2;
 
       const moveX = (x - centerX) / 10
       const moveY = (y - centerY) / 10
